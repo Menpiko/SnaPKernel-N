@@ -1,0 +1,85 @@
+/* Copyright (c) 2014-2015, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+&soc {
+	tlmm_pinmux: pinctrl@fd510000 {
+		sensorhub_ctrl {
+			/* NRST, BOOT0, SPI5 CS, AP2SH, SH2AP */
+			qcom,pins = <&gp 93>, <&gp 94>, <&gp 23>, <&gp 39>, <&gp 41>;
+			qcom,num-grp-pins = <5>;
+			qcom,pin-func = <0>;
+			label = "sensorhub_ctrl";
+			sensorhub_ctrl_sleep: sensorhub_ctrl_sleep {
+				drive-strength = <2>;
+				bias-disable;
+			};
+			sensorhub_ctrl_active: sensorhub_ctrl_active {
+				drive-strength = <2>;
+				bias-disable;
+			};
+		};
+	};
+};
+
+&spi_0 {
+	status = "disabled";
+	/delete-property/ pinctrl-names;
+	/delete-property/ pinctrl-0;
+	/delete-property/ pinctrl-1;
+};
+
+&spi_5 {
+	sensorhub@0 {
+		compatible = "nanohub";
+		reg = <0>;
+		spi-max-frequency = <50000000>;
+		spi-cpol;
+		spi-cpha;
+
+		interrupt-parent = <&msm_gpio>;
+		interrupts = <41 0x2>;
+		sensorhub,wakeup-gpio = <&msm_gpio 39 0>;
+		sensorhub,nreset-gpio = <&msm_gpio 93 0>;
+		sensorhub,boot0-gpio = <&msm_gpio 94 0>;
+		sensorhub,irq1-gpio = <&msm_gpio 41 0>;
+		sensorhub,spi-cs-gpio = <&msm_gpio 23 0>;
+		sensorhub,bl-addr = <0x08000000>;
+		sensorhub,kernel-addr = <0x0800C000>;
+		sensorhub,shared-addr = <0x08020000>;
+		sensorhub,flash-banks = <0 0x08000000 0x04000>,
+			<3 0x0800C000 0x04000>,
+			<4 0x08010000 0x10000>,
+			<5 0x08020000 0x20000>;
+		sensorhub,num-flash-banks = <4>;
+		sensorhub,shared-flash-banks = <6 0x08040000 0x20000>,
+			<7 0x08060000 0x20000>;
+		sensorhub,num-shared-flash-banks = <2>;
+
+		pinctrl-names = "default", "sleep";
+		pinctrl-0 = <&sensorhub_ctrl_active>;
+		pinctrl-1 = <&sensorhub_ctrl_sleep>;
+	};
+};
+
+&pm8994_l18 { /* Sensor VDD */
+	regulator-min-microvolt = <2850000>;
+	regulator-max-microvolt = <2850000>;
+	regulator-always-on;
+	qcom,init-voltage = <2850000>;
+	status = "okay";
+};
+
+&pm8994_lvs2 {
+	qcom,init-enable = <1>;
+	regulator-always-on;
+	status = "okay";
+};
